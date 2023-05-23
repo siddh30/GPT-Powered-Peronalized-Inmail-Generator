@@ -2,11 +2,13 @@ import openai
 from chat_prompts import prompt_generator
 import streamlit as st
 
+### Intailize Variables
+confirmation = None
+
+
 st.title("Personalized LinkedIn Inmail")
 
 #### SIDEBAR ####
-
-
 
 with st.sidebar:
     
