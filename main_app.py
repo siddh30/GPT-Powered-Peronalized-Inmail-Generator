@@ -4,6 +4,7 @@ import streamlit as st
 
 ### Intailize Variables
 confirmation = None
+reply = None
 
 
 st.title("Personalized LinkedIn Inmail")
@@ -45,8 +46,12 @@ if api_key:
 
         with col2:
             Application_Role = st.text_input("Role you are applying to!")
+
+        
+        My_Work_Ex = st.text_area("Work Experience!")
+        st.caption("Note: This is a temporary feature and will be removed!")
             
-        if My_Name and Application_Role:
+        if My_Name and Application_Role and My_Work_Ex:
 
             col1, col2 = st.columns(2)
             
@@ -64,7 +69,7 @@ if api_key:
 
 
         if confirmation:
-            prompt =  prompt_generator(My_Name=My_Name, Application_Role=Application_Role, Recruiter_Name=Recruiter_Name, Comapny_Name=Recruiter_Company)
+            prompt =  prompt_generator(My_Name=My_Name, Application_Role=Application_Role, My_Work_Ex = My_Work_Ex, Recruiter_Name=Recruiter_Name, Comapny_Name=Recruiter_Company)
             # st.text(prompt)
 
             try:
@@ -90,4 +95,7 @@ if api_key:
 
 else:
     st.markdown("Please Enter your ***Open AI account API*** in the siderbar to proceed!")
+
+if reply:
+    st.download_button("Save ChatGPT reply to a text file", reply, file_name="Inmail.txt")
 
