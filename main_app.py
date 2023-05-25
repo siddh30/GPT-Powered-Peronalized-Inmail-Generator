@@ -1,101 +1,107 @@
-import openai
-from chat_prompts import prompt_generator
+
+import pandas as pd
+from helpers.chat_prompts import prompt_generator
 import streamlit as st
+from helpers.work_ex import work_ex_form, work_ex_from_df, work_ex_pipeline
+from helpers.generator import PromptReplyGenerator
+
 
 ### Intailize Variables
-confirmation = None
 reply = None
-
-
 st.title("Personalized LinkedIn Inmail")
 
 #### SIDEBAR ####
 
 with st.sidebar:
-    
     _,col2,_ = st.columns(3)
-    
     with col2:
         st.caption("Powered By -")
 
     st.image("./images/logo.jpg")
-
-
     with st.expander("Model Details"):
         st.markdown("Model - gpt 3.5 turbo")
         st.markdown("Expense - $0.002 per 1K tokens")
 
-
     api_key = st.text_input("Enter your API Key!", type='password')
     st.caption("Your API key will not be saved!")
+    option = st.radio("Choose Input option", ['Start here!', 'Use a pre-saved csv file!'])
 
 
-    option = st.radio("Choose Input option", ['Start here!', 'Use a pre-saved text file!'])
 
 
-##### Main Page
-
+##### MAIN PAGE #######
 if api_key:
+    
+        ##### Row 1
+        if option== 'Start here!':
+            st.caption("1. Enter Your Profile!")
+            work_ex_pipeline()
 
-    if option == 'Start here!':
+        else:
+            st.caption("1. Enter a pre-saved file having your information")
+            uploaded_file = st.file_uploader("Upload file")
+            if uploaded_file is not None:
+                df = pd.read_csv(uploaded_file)
+                st.session_state['df1'] = df
+                
+            if 'df1' in st.session_state:
+                df =  st.session_state['df1']
+                st.text('')
+                st.caption("Summary of the Work Experiences you have added. You can always add more!")
+                st.dataframe(df)
 
-        col1, col2 = st.columns(2)
+                work_ex_from_df(df)
 
-        with col1:
-            My_Name = st.text_input("Enter Your Name")
+    
 
-        with col2:
-            Application_Role = st.text_input("Role you are applying to!")
-
-        
-        My_Work_Ex = st.text_area("Work Experience!")
-        st.caption("Note: This is a temporary feature and will be removed!")
-            
-        if My_Name and Application_Role and My_Work_Ex:
-
+        #### Row 2
+        if (option== 'Start here!' and 'workex' in st.session_state):
+            st.caption("2. Enter Recruiter Information")
             col1, col2 = st.columns(2)
-            
+
             with col1:
-                Recruiter_Name = st.text_input("Recruiter Name")
+                st.session_state['Recruiter_Name1'] = st.text_input("Recruiter Name", key=0)
+                
 
             with col2:
-                Recruiter_Company = st.text_input("Recruiter Company")
+                st.session_state['Recruiter_company1'] = st.text_input("Recruiter Company", key=1)
+                
 
-            if Recruiter_Company and Recruiter_Name:
-                st.text("")
-                confirmation = st.button("Submit These Choices")
-                st.caption("Charges apply on token generation!")
-
-
-
-        if confirmation:
-            prompt =  prompt_generator(My_Name=My_Name, Application_Role=Application_Role, My_Work_Ex = My_Work_Ex, Recruiter_Name=Recruiter_Name, Comapny_Name=Recruiter_Company)
-            # st.text(prompt)
-
-            try:
-                openai.api_key = api_key
-                messages = [
-                    {"role": "system", "content": prompt},
-                ]
+            if ('Recruiter_company1' in st.session_state) and ('Recruiter_Name1' in st.session_state):
+            
+                PromptReplyGenerator(api_key, prompt_generator=prompt_generator, Recruiter_Name=st.session_state['Recruiter_Name1'], Recruiter_Company=st.session_state['Recruiter_company1'])
+                if 'reply' in st.session_state:
+                    st.success(st.session_state['reply'])
+                    col1, col2, _ = st.columns(3)
                     
-                chat = openai.ChatCompletion.create(
-                            model="gpt-3.5-turbo", messages=messages
-                        )
-                reply = chat.choices[0].message.content
+                    with col2:
+                        st.download_button("Save GPT reply!", st.session_state['reply'], file_name="Inmail.txt", use_container_width=True)
 
-                st.success(reply)
+            
+        elif (option=='Use a pre-saved csv file!'):
+            st.caption("2. Enter Recruiter Information")
+            col1, col2 = st.columns(2)
 
+            with col1:
+                st.session_state['Recruiter_Name2'] = st.text_input("Recruiter Name",key=3, )
+                st.text(st.session_state['Recruiter_Name1'])
+                st.text(st.session_state['Recruiter_Name2'])
+            
+            with col2:
+                st.session_state['Recruiter_company2'] = st.text_input("Recruiter Company",key=4)
 
-            except: 
-                st.error("Oops! we were unable to run your request. Please check the following: -")
-                st.markdown("- Ensure your Open AI acount has your billing information!")
-                st.markdown("- Please check your API key!")
-                st.markdown("- If you have used a presaved text file, please check that it follows the right format!")
+            if ('Recruiter_company2' in st.session_state) and ('Recruiter_Name2' in st.session_state):
+
+                PromptReplyGenerator(api_key, prompt_generator=prompt_generator, Recruiter_Name=st.session_state['Recruiter_Name2'], Recruiter_Company=st.session_state['Recruiter_company2'])
+                if 'reply' in st.session_state:
+                    st.success(st.session_state['reply'])
+                    col1, col2, _ = st.columns(3)
+                    
+                    with col2:
+                        st.download_button("Save GPT reply!", st.session_state['reply'], file_name="Inmail.txt", use_container_width=True)
 
 
 else:
     st.markdown("Please Enter your ***Open AI account API*** in the siderbar to proceed!")
 
-if reply:
-    st.download_button("Save ChatGPT reply to a text file", reply, file_name="Inmail.txt")
 
