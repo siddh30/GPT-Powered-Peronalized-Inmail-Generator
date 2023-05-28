@@ -6,8 +6,6 @@ import streamlit as st
 from helpers.generator import PromptReplyGenerator
 from elements import sidebar, MainPage
 
-
-
             
 ### Title
 st.title("Personalized LinkedIn Inmail")
