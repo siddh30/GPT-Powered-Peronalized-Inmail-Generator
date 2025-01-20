@@ -1,6 +1,6 @@
 
 
-# GPT-Powered-Peronalized-Inmail-Generator
+# GPT-Powered-Personalized-Inmail-Generator
 
 Reach out to Recruiters with Personalized Linkedin InMails powered by GPT 3.5 Turbo and grab the attention of any recruiter you reach out to!
 
